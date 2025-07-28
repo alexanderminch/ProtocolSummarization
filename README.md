@@ -34,10 +34,12 @@ Trial Manager on the practicality of the concept of the project. She said:
 
 >"The sections of a protocol document are already well sectioned. Don't over-engineer it."
 
-So I altered the classification process to a 3 step approach.
+So I altered the classification process to a 3 step approach to take advantage of the pre-labeling.
 1. Classifying chunks based on their section header during parse. 
 2. Fringe or unlabled chunks would get [embedded](https://www.datacamp.com/blog/what-is-text-embedding-ai), then classified using cosine similarity compared to the average vector embedding for the already classified text. 
 3. If any of those secondary chunks don't meet a confidence threshold, they are finally sent to a zero-shot classifier and labeled there.
+
+This means less calls to large models, which should in turn decrease the overall time of the program.
 
 ---
 
@@ -49,9 +51,15 @@ Loads document with PyMuPDF, then using the Table of Contents iterates over the 
 
 ### STEP 2: Embed + Cosine Similarity
 
-All text from 
+All text from the 8 categories is embedded as chunks of ==150== words, then averaged. The same will happen to the text of "Unlabeled", except rather than averaged, it's compared to the average of the 8 labels using cosine similarity, and added to the nearest match in the case of exceding the confidence threshold of ==60%==.
 
+### STEP 3: Zero-Shot Classifier
 
+In worst case scenario, the confidence of the previous method is too low to make a fair labeling judgment. In this case, the time expensive call is made to the bert classifier model. 
+
+### STEP 4: LLM Summary
+
+---
 
 
 IDEAS: 
