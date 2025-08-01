@@ -51,11 +51,13 @@ Loads document with PyMuPDF, then using the Table of Contents iterates over the 
 
 ### STEP 2: Embed + Cosine Similarity
 
-All text from the 8 categories is embedded as chunks of **150** words, then averaged. The same will happen to the text of "Unlabeled", except rather than averaged, it's compared to the average of the 8 labels using cosine similarity, and added to the nearest match in the case of exceding the confidence threshold of **60%**.
+All text from the 8 categories is embedded as chunks of **150** words, then averaged. The same will happen to the text of "Unlabeled", except rather than averaged, it's compared to the average of the 8 labels using cosine similarity, and added to the nearest match in the case of exceding the confidence threshold of **60%**. 
 
 ### STEP 3: Zero-Shot Classifier
 
-In worst case scenario, the confidence of the previous method is too low to make a fair labeling judgment. In this case, the time expensive call is made to the bert classifier model. 
+In worst case scenario, the confidence of the previous method is too low to make a fair labeling judgment. In this case, the time expensive call is made to the bert classifier model, classifying based on its judgment if surpassing the confidence threshold of **70%**. As seen in Figure 1, the categories are not definitevly clustered following tokenization/embedding. So, if neither confidence threshold is met, the text is regarded as not important and is discarded.
+
+![Figure 1](cl_em.png)
 
 ### STEP 4: LLM Summary
 
