@@ -51,7 +51,7 @@ Loads document with PyMuPDF, then using the Table of Contents iterates over the 
 
 ### STEP 2: Embed + Cosine Similarity
 
-All text from the 8 categories is embedded as chunks of **150** words, then averaged. The same will happen to the text of "Unlabeled", except rather than averaged, it's compared to the average of the 8 labels using cosine similarity, and added to the nearest match in the case of exceding the confidence threshold of **60%**. 
+All text from the 8 categories is embedded as chunks of **150** words, then averaged. From that is calculated the category centroid, and the bottom **25%** furthest from the centroid are treated as outliers and are left out. The same will happen to the text of "Unlabeled", except rather than averaged, it's compared to the average of the 8 labels using cosine similarity, and added to the nearest match in the case of exceding the confidence threshold of **60%**. 
 
 ### STEP 3: Zero-Shot Classifier
 

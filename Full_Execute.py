@@ -7,7 +7,7 @@ if __name__ == "__main__":
     parser = Pymu_Parse.catParse()
     parser.extract('Doc_Parsing/Prot_000 2.pdf')
     classifier = Classification.EmShot(parser.sorted_scrape)
-    classifier.cluster_graph()
-    #classifier.getCatAvg()
-    #classifier.label()
+    #classifier.cluster_graph()
+    classifier.getCatAvg()
+    classifier.label()
 

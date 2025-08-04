@@ -22,6 +22,19 @@ class catParse():
             if any(keyword in heading for keyword in keywords):
                 return cat
         return "Unlabeled"
+    
+    # Heuristic-based filter for junk text, shortens classification time
+    def filter_junk(self, text):
+        if len(text.split()) < 10:
+            return False
+        alpha_chars = sum(c.isalpha() for c in text)
+        total_chars = len(text)
+        if total_chars == 0 or (alpha_chars / total_chars) < 0.3:
+            return False
+        punct_chars = sum(c in "!@#$%^&*()[]{};:,./<>?\|`~" for c in text)
+        if (punct_chars / total_chars) > 0.3:
+            return False
+        return True
 
     def extract(self, pdf_path):
         doc = fitz.open(pdf_path)
@@ -34,13 +47,14 @@ class catParse():
             title_lower = title.lower()
             start_page = page - 1
             end_page = toc[i + 1][2] - 1 if i + 1 < len(toc) else len(doc)
-
             cat = self.match_to_category(title_lower)
-
             for pno in range(start_page, end_page):
                 raw = doc[pno].get_text()
-                cleaned = ' '.join(raw.split())  
-                categorized_sections[cat] += cleaned + " "
+                paragraphs = raw.split("\n\n")
+                for par in paragraphs:
+                    cleaned = ' '.join(par.split())  
+                    if self.filter_junk(cleaned):
+                        categorized_sections[cat] += cleaned + " "
 
         self.sorted_scrape = categorized_sections
 

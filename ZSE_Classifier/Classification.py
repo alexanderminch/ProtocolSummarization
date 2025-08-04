@@ -15,13 +15,14 @@ class EmShot():
     def __init__(self, texts):
         self.texts = texts
         self.cat_averages = {}
-        self.model = SentenceTransformer("BAAI/bge-large-en-v1.5")
+        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        self.pipe = pipeline(model="facebook/bart-large-mnli")
 
         # Affect Time/Accuracy of the Program:
-        self.chunk_size = 150 # decides the size of text that is sent to sentence transformers, smaller = longer but higher classification accuracy, vice versa for larger
-        self.cos_thresh = .7 # threshold for cos_sim
-        self.cos_bot_thresh = .4 # if confidence of cos_sim doesn't meet this mark, discarded before sent to zero-shot
-        # thus, chunks in range of (.4, .7) are sent to zero-shot
+        self.chunk_size = 150 # decides the size of text that is sent to sentence transformers, smaller = longer, vice versa for larger
+        self.cos_thresh = .75 # threshold for cos_sim
+        self.cos_bot_thresh = .6 # if confidence of cos_sim doesn't meet this mark, discarded before sent to zero-shot
+        # thus, chunks in range of (.6, .75) are sent to zero-shot
         self.zs_thresh = .7 # confidence threshold for zero shot
 
     # embeds the chunk of text sent through as a tensor
@@ -48,12 +49,12 @@ class EmShot():
 
         return [top_class, top_sim, top_sim - second, full_probabilities]
     
-    def zs_classify(texts):
-        pipe = pipeline(model="facebook/bart-large-mnli")
-        result = pipe(texts,
+    def zs_classify(self, texts):
+        result = self.pipe(texts,
                       candidate_labels=["Study Objectives", "Study Endpoints", "Study Design", 
                                         "Study Population", "Study Treatments", "Study Procedures",
                                         "Study Monitoring", "Study Methods"],)
+        return result
     
     def getCatAvg(self, keep_top=0.7, chunk_size=150):
         for cat in self.texts:
@@ -69,79 +70,63 @@ class EmShot():
             filtered_embeddings = embeddings[top_indices]
             self.cat_averages[cat] = torch.mean(filtered_embeddings, dim=0)
 
-    def compute_entropy(self, prob_dist):
-        return -sum(p * math.log2(p) for p in prob_dist.values() if p > 0)
-
     def label(self):
-
-        wb = load_workbook("Cosine_Similarity_Data.xlsx")
-        ws = wb.active
-
-        #keep
         words = self.texts["Unlabeled"].split()
-        #chunks = [" ".join(words[i:i+150]) for i in range(0, int(len(words)), chunk_size)]
+        chunks = [" ".join(words[i:i+150]) for i in range(0, int(len(words)), 300)]
 
-        chunk_sizes = list(range(100, 550, 50))
         confidences = []
         diffs = []
-        ents = []
-        for chunk_size in chunk_sizes:
-            start_time = time.time()
+
+        guesses = {}
+        for chunk in tqdm(chunks):
+            similarity = self.cos_classify(chunk)
+            if similarity[1] > .75: self.texts[similarity[0]] = chunk
+            if similarity[1] > .65: guesses = self.zs_classify(chunk)
+            print(type(guesses))
+        #   cl, best, diff = guesses['labels'][0], guesses['scores'][0], guesses['scores'][0] - guesses['scores'][1]
             
-            #keep
-            chunks = [" ".join(words[i:i+chunk_size]) for i in range(0, len(words), chunk_size)]
-            for chunk in tqdm(chunks):
-                similarity = self.cos_classify(chunk)
+        #     confidences.append(best)
+        #     diffs.append(diff)
+        # plt.figure(figsize=(12, 6))
+        # plt.subplot(1, 2, 1)
+        # plt.hist(confidences, bins=20, color='skyblue', edgecolor='black')
+        # plt.title("Histogram of Top Confidence Scores")
+        # plt.xlabel("Confidence Score")
+        # plt.ylabel("Frequency")
 
-                confidences.append(similarity[1])
-                diffs.append(similarity[2])
-                ents.append(self.compute_entropy(similarity[3]))
-            end_time = time.time()
-            time_elapsed = round(end_time - start_time, 2)
-            confidence_avg = round(sum(confidences) / len(confidences), 4) if confidences else 0
-            diff_avg = round(sum(diffs) / len(diffs), 4) if diffs else 0
-            avg_ent = sum(ents) / len(ents) if ents else 0
-            ws.append([chunk_size, round(time_elapsed, 2), round(confidence_avg, 4), round(diff_avg, 4), round(avg_ent, 4)])
+        # plt.subplot(1, 2, 2)
+        # plt.hist(diffs, bins=20, color='salmon', edgecolor='black')
+        # plt.title("Histogram of Score Differences (Top - 2nd Best)")
+        # plt.xlabel("Score Difference")
+        # plt.ylabel("Frequency")
 
-        wb.save("Cosine_Similarity_Data.xlsx")
+        # plt.tight_layout()
+        # plt.show()
+                
+
+# -------- GRAPHING -----------
 
     def cluster_graph(self, keep_top_percent=0.6):
         all_embeddings = []
         labels = []
-
         for cat in self.texts:
-            if cat == "Unlabeled":
-                continue
-
-            # Split into chunks and remove empty ones
+            if cat == "Unlabeled": continue
             chunks = self.texts[cat].split('.')
             chunks = [chunk.strip() for chunk in chunks if chunk.strip()]
             if not chunks:
                 continue
-
-            # Embed the chunks
             embeddings = self.model.encode(chunks, convert_to_tensor=True)
-
-            # Compute centroid and cosine similarities
             centroid = embeddings.mean(dim=0, keepdim=True)
             similarities = util.cos_sim(embeddings, centroid).squeeze(1)
-
-            # Filter top N% most representative chunks
             k = int(len(similarities) * keep_top_percent)
             top_indices = similarities.argsort(descending=True)[:k]
-
-            # Collect only top embeddings and their labels
             top_embeddings = embeddings[top_indices].cpu().numpy()
             all_embeddings.extend(top_embeddings)
             labels.extend([cat] * len(top_embeddings))
 
-        # Convert all embeddings to NumPy array for t-SNE
         all_embeddings = numpy.array(all_embeddings)
-
-        # Reduce dimensions using t-SNE
         reduced = TSNE(n_components=2, perplexity=30, n_iter=1000).fit_transform(all_embeddings)
 
-        # Plotting
         plt.figure(figsize=(12, 8))
         unique_labels = list(set(labels))
         colors = plt.cm.get_cmap("tab10", len(unique_labels))
@@ -150,7 +135,6 @@ class EmShot():
             x = reduced[idxs, 0]
             y = reduced[idxs, 1]
             plt.scatter(x, y, color=colors(i), label=label, alpha=0.6)
-
         plt.title(f"Top {int(keep_top_percent*100)}% Most Representative Chunks per Category")
         plt.legend()
         plt.grid(True)
