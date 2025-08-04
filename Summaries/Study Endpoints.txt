@@ -1,0 +1,20 @@
+== Study Endpoints ==
+ IPSEN Group A-93-52030-325 CONFIDENTIAL PROTOCOL: FINAL 3.0 (INCLUDING AMENDMENT #2 AND #3) 16 NOVEMBER 2017 PAGE 
+ 34/110 3.2 Primary and Secondary Endpoints and Evaluations . Primary endpoint is the percentage of responders 
+ (DCR according to RECIST criteria v 1.1) at 9 months (V12) after first treatment administration, defined as objective 
+ response or stability of the disease . Secondary endpoints are: Progression Free Survival (PFS) from first treatment .  
+ The primary efficacy endpoint is the response of subjects to the study combination therapy, 9 months (Visit 12) after 
+ first treatment administration . Responders are subjects showing disease control according to RECIST criteria v 1.1, 
+ defined as objective response or stability of the disease . Secondary efficacy endpoints and evaluations are summarised 
+ in Table 8 .  Tumor evaluation (chest, abdomen and pelvis) will be assessed at screening visit (V1) by means of triphasic 
+ CT scan . Measurable disease lesions must be accurately measured in at least one dimension with longest diameter ≥ 10 mm 
+ with CT scan (with minimum lesion size no less than double the slice thickness)  Measurable target lesions must be 
+ accurately measured in at least one dimension with longest diameter ≥ 10 mm with CT scan (with minimum lesion size no 
+ less than double the slice thickness), according to RECIST criteria v 1.1 .  IPSEN Group A-93-52030-325 CONFIDENTIAL 
+ PROTOCOL: FINAL 3.0 (INCLUDING AMENDMENT #2 AND #3) 16 NOVEMBER 2017 PAGE 9/110 tumor response (PR or CR) to objective 
+ tumor progression (PD) or death from any cause .  The influence of typical carcinoids and atypical carcinoids on the 
+ Disease control rate (DCR) at 9 months . Biochemical Response according to decrease in CgA plasma level in subjects with 
+ baseline Cg a level greater than ULN. Rate (ORR): Complete Response (CR), Partial Response (PR) and Stable Disease (SD)  
+ Secondary efficacy endpoints and evaluations are summarised in Table 8 . Tumor response according to RECIST criteria v 
+ 1.1 at 1, 6, 9, 12, 16 visits .
+

@@ -1,0 +1,10 @@
+== Study Treatments ==
+ This is a non-randomised, open label study . Lanreotide ATG 120 mg, will be administered, at baseline and every 28 
+ days until 48 weeks of treatment (12 injections) through deep subcutaneous injection . TMZ will be provided in glass 
+ bottles or blisters containing 5 hard capsules of Temozolomide, at two different dosages: 250 mg and 180 mg, to allow 
+ a dose reduction in case of bone marrow toxicity .  The first cycle intake will start the same day of the administration 
+ of Lanreotide ATG 120 mg and will continue for the next 4 days (5 days of treatment in total) A cycle treatment includes 
+ the first 5 days of each month . TMZmg every 28 days, deep subcutaneous injection for a maximum of 48 weeks, for a total 
+ of 13 injections .  Lanreotide ATG 120 mg every 28 days, deep subcutaneous injection for a maximum of 48 weeks, for a 
+ total number of weeks . Subjects will be allocated a subject number .
+

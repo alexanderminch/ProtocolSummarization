@@ -50,6 +50,7 @@ class EmShot():
         return [top_class, top_sim, top_sim - second, full_probabilities]
     
     def zs_classify(self, texts):
+        print("Zero Shot Started...")
         result = self.pipe(texts,
                       candidate_labels=["Study Objectives", "Study Endpoints", "Study Design", 
                                         "Study Population", "Study Treatments", "Study Procedures",
@@ -73,35 +74,18 @@ class EmShot():
     def label(self):
         words = self.texts["Unlabeled"].split()
         chunks = [" ".join(words[i:i+150]) for i in range(0, int(len(words)), 300)]
-
-        confidences = []
-        diffs = []
-
-        guesses = {}
-        for chunk in tqdm(chunks):
+        to_zs = []
+        for chunk in tqdm(chunks, desc = "Embed"):
             similarity = self.cos_classify(chunk)
-            if similarity[1] > .75: self.texts[similarity[0]] = chunk
-            if similarity[1] > .65: guesses = self.zs_classify(chunk)
-            print(type(guesses))
-        #   cl, best, diff = guesses['labels'][0], guesses['scores'][0], guesses['scores'][0] - guesses['scores'][1]
-            
-        #     confidences.append(best)
-        #     diffs.append(diff)
-        # plt.figure(figsize=(12, 6))
-        # plt.subplot(1, 2, 1)
-        # plt.hist(confidences, bins=20, color='skyblue', edgecolor='black')
-        # plt.title("Histogram of Top Confidence Scores")
-        # plt.xlabel("Confidence Score")
-        # plt.ylabel("Frequency")
-
-        # plt.subplot(1, 2, 2)
-        # plt.hist(diffs, bins=20, color='salmon', edgecolor='black')
-        # plt.title("Histogram of Score Differences (Top - 2nd Best)")
-        # plt.xlabel("Score Difference")
-        # plt.ylabel("Frequency")
-
-        # plt.tight_layout()
-        # plt.show()
+            if similarity[1] > .8: self.texts[similarity[0]] += chunk
+            if similarity[1] > .7 and similarity[2] > .1: to_zs.append(chunk)
+        guesses = self.zs_classify(to_zs)
+        for chunk, guess in zip(to_zs, guesses):
+            if not guess:
+                print("Error: " + chunk)
+            cl, best, diff = guess['labels'][0], guess['scores'][0], guess['scores'][0] - guess['scores'][1]
+            if best > 0.75 or (best > 0.65 and diff > 0.1):
+                self.texts[cl] += chunk
                 
 
 # -------- GRAPHING -----------
