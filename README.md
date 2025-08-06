@@ -61,11 +61,8 @@ In worst case scenario, the confidence of the previous method is too low to make
 
 ### STEP 4: LLM Summary
 
+
 ---
 
+##TODO
 
-IDEAS: 
-
-A graph that shows accuracy of the summary or classifier based on chunk size, but one that also shows time
-
-A graph for 

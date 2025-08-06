@@ -19,20 +19,32 @@ class EmShot():
         self.pipe = pipeline(model="facebook/bart-large-mnli")
 
         # Affect Time/Accuracy of the Program:
-        self.chunk_size = 150 # decides the size of text that is sent to sentence transformers, smaller = longer, vice versa for larger
+        self.chunk_size = 300 # decides the size of text that is sent to sentence transformers, smaller = longer, vice versa for larger
         self.cos_thresh = .75 # threshold for cos_sim
         self.cos_bot_thresh = .6 # if confidence of cos_sim doesn't meet this mark, discarded before sent to zero-shot
         # thus, chunks in range of (.6, .75) are sent to zero-shot
         self.zs_thresh = .7 # confidence threshold for zero shot
 
-    # embeds the chunk of text sent through as a tensor
+    """
+        Param:
+            texts -> list of strings
+        Method:
+            embeds the chunk of text sent through as a tensor
+        Returns:
+            ltensor
+    """
     def embed(self, texts):
         if isinstance(texts, str): texts = [texts]
         return self.model.encode(texts, convert_to_tensor=True)
 
-    # performs cosine similarity on the vector rep of the parameter text compared to the averages of all the pre classified texts
-    # unkown -> list of strings
-    # returns list [class chosen, confidence of classification, difference between first highest conf class and second, entropy of class probabilities]
+    """
+        Param:
+            unkown -> list of strings
+        Method:
+            performs cosine similarity on the vector rep of the parameter text compared to the averages of all the pre classified texts
+        Returns:
+            list [class chosen, confidence of classification, difference between first highest conf class and second]
+    """
     def cos_classify(self, unkown):
         similarities = {}
         for avg in self.cat_averages:
@@ -42,12 +54,7 @@ class EmShot():
         sort_sim = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
         top_class, top_sim = sort_sim[0]
         second = sort_sim[1][1] if len(sort_sim) > 1 else 0.0
-
-        sim_tensor = torch.tensor(list(similarities.values()))
-        prob = F.softmax(sim_tensor, dim=0)
-        full_probabilities = {cls: prob for cls, prob in zip(similarities.keys(), prob.tolist())}
-
-        return [top_class, top_sim, top_sim - second, full_probabilities]
+        return [top_class, top_sim, top_sim - second]
     
     def zs_classify(self, texts):
         print("Zero Shot Started...")
@@ -73,19 +80,18 @@ class EmShot():
 
     def label(self):
         words = self.texts["Unlabeled"].split()
-        chunks = [" ".join(words[i:i+150]) for i in range(0, int(len(words)), 300)]
-        to_zs = []
+        chunks = [" ".join(words[i:i+150]) for i in range(0, int(len(words)), self.chunk_size)]
         for chunk in tqdm(chunks, desc = "Embed"):
             similarity = self.cos_classify(chunk)
             if similarity[1] > .8: self.texts[similarity[0]] += chunk
-            if similarity[1] > .7 and similarity[2] > .1: to_zs.append(chunk)
-        guesses = self.zs_classify(to_zs)
-        for chunk, guess in zip(to_zs, guesses):
-            if not guess:
-                print("Error: " + chunk)
-            cl, best, diff = guess['labels'][0], guess['scores'][0], guess['scores'][0] - guess['scores'][1]
-            if best > 0.75 or (best > 0.65 and diff > 0.1):
-                self.texts[cl] += chunk
+        #     if similarity[1] > .7 and similarity[2] > .1: to_zs.append(chunk)
+        # guesses = self.zs_classify(to_zs)
+        # for chunk, guess in zip(to_zs, guesses):
+        #     if not guess:
+        #         print("Error: " + chunk)
+        #     cl, best, diff = guess['labels'][0], guess['scores'][0], guess['scores'][0] - guess['scores'][1]
+        #     if best > 0.75 or (best > 0.65 and diff > 0.1):
+        #         self.texts[cl] += chunk
                 
 
 # -------- GRAPHING -----------

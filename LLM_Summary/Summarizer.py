@@ -1,25 +1,22 @@
 from transformers import pipeline
 
 class TextSummarizer:
-    def __init__(self, texts: dict, model_name: str = "sshleifer/distilbart-cnn-12-6"):
+    def __init__(self, texts: dict, llm: str = "sshleifer/distilbart-cnn-12-6"):
         """
-        Initializes the summarizer with classified text.
-
-        Args:
-            texts (dict): A dictionary where keys are class labels and values are strings of text.
-            model_name (str): HuggingFace summarization model name.
+        texts -> self.texts from EmShot class : dictionary with the 8 pre-defined labels + all their classified text
         """
         self.texts = {k: v for k, v in texts.items() if v.strip()}  
-        self.summarizer = pipeline("summarization", model=model_name)
+        self.summarizer = pipeline("summarization", model=llm)
         self.summaries = {}
 
-    def summarize(self, max_words=512):
-        """
-        Summarizes the text for each class.
-
-        Args:
+    """
+        Param:
             max_words (int): Maximum number of words to pass into the model per chunk.
-        """
+        Method:
+            splits classified texts into max_words length chunks, iterates through them summarizing each independently, then
+            combining for a full category summary
+    """
+    def summarize(self, max_words=512):
         for label, full_text in self.texts.items():
             words = full_text.split()
             chunks = [" ".join(words[i:i+max_words]) for i in range(0, len(words), max_words)]
@@ -34,14 +31,8 @@ class TextSummarizer:
 
             self.summaries[label] = " ".join(label_summary)
 
-    def get_summary(self, label: str) -> str:
-        """
-        Returns the summary for a specific label.
-        """
-        return self.summaries.get(label, "[No summary available]")
-
-    def get_all_summaries(self) -> dict:
-        """
+    """
         Returns all label summaries.
-        """
+    """
+    def get_summaries(self) -> dict:
         return self.summaries
